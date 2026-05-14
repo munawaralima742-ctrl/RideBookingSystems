@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: ride-booking-system
+    env: native
+    buildCommand: g++ app.cpp -o app
+    startCommand: ./app
+    staticPublishPath: static
