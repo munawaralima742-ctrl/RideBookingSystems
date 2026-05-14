@@ -3,7 +3,42 @@
 
 using namespace std;
 
-// ================= USER =================
+// ============================
+// DRIVER STRUCTURE
+// ============================
+
+struct Driver
+{
+    int id;
+    string name;
+    string vehicle;
+    int pricePerKM;
+    bool available;
+};
+
+// ============================
+// DEFAULT DRIVERS
+// ============================
+
+Driver drivers[10] =
+{
+    {1, "Ali",      "Honda Civic",     18, true},
+    {2, "Ahmed",    "Suzuki Alto",     12, true},
+    {3, "Usman",    "Toyota Corolla",  20, true},
+    {4, "Hamza",    "WagonR",          10, true},
+    {5, "Bilal",    "Honda City",      16, true},
+    {6, "Awais",    "Cultus",          11, true},
+    {7, "Saqib",    "Kia Sportage",    25, true},
+    {8, "Daniyal",  "Mehran",           9, true},
+    {9, "Farhan",   "Toyota Yaris",    17, true},
+    {10,"Zain",     "Swift",           14, true}
+};
+
+int totalDrivers = 10;
+
+// ============================
+// USER STRUCTURE
+// ============================
 
 struct User
 {
@@ -12,25 +47,36 @@ struct User
     string phone;
 };
 
-// ================= DRIVER =================
+// ============================
+// RIDE STRUCTURE
+// ============================
 
-struct Driver
+struct Ride
 {
-    int id;
-    string name;
+    string source;
+    string destination;
+    string driverName;
     string vehicle;
-    bool available;
+    float fare;
 };
 
-// ================= GLOBAL ARRAYS =================
+// ============================
+// USER ARRAY
+// ============================
 
 User users[100];
 int totalUsers = 0;
 
-Driver drivers[100];
-int totalDrivers = 0;
+// ============================
+// RIDE HISTORY
+// ============================
 
-// ================= REGISTER USER =================
+Ride rideHistory[100];
+int totalRides = 0;
+
+// ============================
+// REGISTER USER
+// ============================
 
 void registerUser()
 {
@@ -53,32 +99,9 @@ void registerUser()
     cout << "\nUser Registered Successfully!\n";
 }
 
-// ================= REGISTER DRIVER =================
-
-void registerDriver()
-{
-    Driver d;
-
-    cout << "\nEnter Driver ID: ";
-    cin >> d.id;
-
-    cin.ignore();
-
-    cout << "Enter Driver Name: ";
-    getline(cin, d.name);
-
-    cout << "Enter Vehicle Name: ";
-    getline(cin, d.vehicle);
-
-    d.available = true;
-
-    drivers[totalDrivers] = d;
-    totalDrivers++;
-
-    cout << "\nDriver Registered Successfully!\n";
-}
-
-// ================= VIEW USERS =================
+// ============================
+// VIEW USERS
+// ============================
 
 void viewUsers()
 {
@@ -88,55 +111,75 @@ void viewUsers()
         return;
     }
 
-    cout << "\n========== USERS ==========\n";
+    cout << "\n============= USERS =============\n";
 
     for(int i = 0; i < totalUsers; i++)
     {
         cout << "\nUser #" << i + 1 << endl;
-        cout << "ID    : " << users[i].id << endl;
-        cout << "Name  : " << users[i].name << endl;
-        cout << "Phone : " << users[i].phone << endl;
+        cout << "ID      : " << users[i].id << endl;
+        cout << "Name    : " << users[i].name << endl;
+        cout << "Phone   : " << users[i].phone << endl;
     }
 }
 
-// ================= VIEW DRIVERS =================
+// ============================
+// VIEW DRIVERS
+// ============================
 
 void viewDrivers()
 {
-    if(totalDrivers == 0)
-    {
-        cout << "\nNo Drivers Registered!\n";
-        return;
-    }
-
-    cout << "\n========== DRIVERS ==========\n";
+    cout << "\n============= DRIVERS =============\n";
 
     for(int i = 0; i < totalDrivers; i++)
     {
         cout << "\nDriver #" << i + 1 << endl;
-        cout << "ID       : " << drivers[i].id << endl;
-        cout << "Name     : " << drivers[i].name << endl;
-        cout << "Vehicle  : " << drivers[i].vehicle << endl;
-        cout << "Status   : ";
+        cout << "Name          : " << drivers[i].name << endl;
+        cout << "Vehicle       : " << drivers[i].vehicle << endl;
+        cout << "Price Per KM  : Rs. " << drivers[i].pricePerKM << endl;
 
         if(drivers[i].available)
-            cout << "Available\n";
+            cout << "Status        : Available\n";
         else
-            cout << "Busy\n";
+            cout << "Status        : Busy\n";
     }
 }
 
-// ================= BOOK RIDE =================
+// ============================
+// FIND CHEAPEST DRIVER
+// ============================
+
+int findCheapestDriver()
+{
+    int cheapestIndex = -1;
+    int minimumPrice = 9999;
+
+    for(int i = 0; i < totalDrivers; i++)
+    {
+        if(drivers[i].available &&
+           drivers[i].pricePerKM < minimumPrice)
+        {
+            minimumPrice = drivers[i].pricePerKM;
+            cheapestIndex = i;
+        }
+    }
+
+    return cheapestIndex;
+}
+
+// ============================
+// BOOK RIDE
+// ============================
 
 void requestRide()
 {
-    if(totalDrivers == 0)
+    if(totalUsers == 0)
     {
-        cout << "\nNo Drivers Registered!\n";
+        cout << "\nPlease Register User First!\n";
         return;
     }
 
     string source, destination;
+    float distance;
 
     cin.ignore();
 
@@ -146,52 +189,131 @@ void requestRide()
     cout << "Enter Destination: ";
     getline(cin, destination);
 
-    Driver* assigned = NULL;
+    cout << "Enter Distance (KM): ";
+    cin >> distance;
 
-    for(int i = 0; i < totalDrivers; i++)
-    {
-        if(drivers[i].available)
-        {
-            assigned = &drivers[i];
-            break;
-        }
-    }
+    int driverIndex = findCheapestDriver();
 
-    if(assigned == NULL)
+    if(driverIndex == -1)
     {
         cout << "\nNo Drivers Available!\n";
         return;
     }
 
-    assigned->available = false;
+    Driver &d = drivers[driverIndex];
 
-    cout << "\n====================================\n";
-    cout << "Driver Assigned : " << assigned->name << endl;
-    cout << "Vehicle         : " << assigned->vehicle << endl;
-    cout << "Pickup          : " << source << endl;
-    cout << "Destination     : " << destination << endl;
-    cout << "Ride Started...\n";
+    d.available = false;
+
+    float fare = 100 + (distance * d.pricePerKM);
+
+    Ride r;
+
+    r.source = source;
+    r.destination = destination;
+    r.driverName = d.name;
+    r.vehicle = d.vehicle;
+    r.fare = fare;
+
+    rideHistory[totalRides] = r;
+    totalRides++;
+
+    cout << "\n=========================================\n";
+    cout << "        RIDE BOOKED SUCCESSFULLY\n";
+    cout << "=========================================\n";
+
+    cout << "Driver Name     : " << d.name << endl;
+    cout << "Vehicle          : " << d.vehicle << endl;
+    cout << "Price Per KM     : Rs. " << d.pricePerKM << endl;
+    cout << "Pickup Location  : " << source << endl;
+    cout << "Destination      : " << destination << endl;
+    cout << "Total Fare       : Rs. " << fare << endl;
+
+    cout << "\nRide Started...\n";
     cout << "Ride Completed Successfully!\n";
-    cout << "====================================\n";
 
-    assigned->available = true;
+    cout << "=========================================\n";
+
+    d.available = true;
 }
 
-// ================= FARE =================
+// ============================
+// VIEW RIDE HISTORY
+// ============================
 
-void calculateFare()
+void viewRideHistory()
 {
-    float distance;
+    if(totalRides == 0)
+    {
+        cout << "\nNo Ride History Found!\n";
+        return;
+    }
 
-    cout << "\nEnter Distance (KM): ";
-    cin >> distance;
+    cout << "\n============= RIDE HISTORY =============\n";
 
-    float fare = 100 + (distance * 20);
+    for(int i = 0; i < totalRides; i++)
+    {
+        cout << "\nRide #" << i + 1 << endl;
 
-    cout << "\nEstimated Fare = Rs. " << fare << endl;
+        cout << "Pickup       : "
+             << rideHistory[i].source << endl;
+
+        cout << "Destination  : "
+             << rideHistory[i].destination << endl;
+
+        cout << "Driver       : "
+             << rideHistory[i].driverName << endl;
+
+        cout << "Vehicle      : "
+             << rideHistory[i].vehicle << endl;
+
+        cout << "Fare         : Rs. "
+             << rideHistory[i].fare << endl;
+    }
 }
 
-// ================= MAIN =================
+// ============================
+// SEARCH RIDE
+// ============================
+
+void searchRide()
+{
+    string location;
+
+    cin.ignore();
+
+    cout << "\nEnter Pickup Location To Search: ";
+    getline(cin, location);
+
+    bool found = false;
+
+    for(int i = 0; i < totalRides; i++)
+    {
+        if(rideHistory[i].source == location)
+        {
+            found = true;
+
+            cout << "\nRide Found!\n";
+
+            cout << "Destination : "
+                 << rideHistory[i].destination << endl;
+
+            cout << "Driver      : "
+                 << rideHistory[i].driverName << endl;
+
+            cout << "Fare        : Rs. "
+                 << rideHistory[i].fare << endl;
+        }
+    }
+
+    if(!found)
+    {
+        cout << "\nNo Ride Found!\n";
+    }
+}
+
+// ============================
+// MAIN FUNCTION
+// ============================
 
 int main()
 {
@@ -203,16 +325,18 @@ int main()
         cout << "=========================================\n";
         cout << "        RIDE BOOKING SYSTEM\n";
         cout << "=========================================\n";
+
         cout << "1. Register User\n";
-        cout << "2. Register Driver\n";
-        cout << "3. View Users\n";
-        cout << "4. View Drivers\n";
-        cout << "5. Book Ride\n";
-        cout << "6. Calculate Fare\n";
+        cout << "2. View Users\n";
+        cout << "3. View Drivers\n";
+        cout << "4. Book Cheapest Ride\n";
+        cout << "5. View Ride History\n";
+        cout << "6. Search Ride\n";
         cout << "7. Exit\n";
+
         cout << "=========================================\n";
 
-        cout << "Enter Choice: ";
+        cout << "Enter Your Choice: ";
         cin >> choice;
 
         switch(choice)
@@ -222,23 +346,23 @@ int main()
                 break;
 
             case 2:
-                registerDriver();
-                break;
-
-            case 3:
                 viewUsers();
                 break;
 
-            case 4:
+            case 3:
                 viewDrivers();
                 break;
 
-            case 5:
+            case 4:
                 requestRide();
                 break;
 
+            case 5:
+                viewRideHistory();
+                break;
+
             case 6:
-                calculateFare();
+                searchRide();
                 break;
 
             case 7:
