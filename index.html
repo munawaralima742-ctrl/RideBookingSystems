@@ -713,88 +713,126 @@ function registerDriver(){
 
 // ── BOOK RIDE ────────────────────────────────────────────────────────────────
 function bookRide(){
+
   const pickup=document.getElementById('pickup').value.trim();
   const dest=document.getElementById('dest').value.trim();
   const type=document.getElementById('ride-type').value;
   const uid=parseInt(document.getElementById('uid-book').value);
 
-  if(!pickup||!dest){ notify('⚠ Enter pickup & destination',true); return; }
-  const user=users.find(u=>u.id===uid);
-  if(!user){ notify('⚠ User ID not found. Register first.',true); return; }
-  if(drivers.length===0){ notify('⚠ No drivers registered yet',true); return; }
+  if(!pickup || !dest){
+    notify('⚠ Enter pickup & destination',true);
+    return;
+  }
 
-  // Reset status dots
-  ['dot1','dot2','dot3','dot4'].forEach(id=>{
-    const d=document.getElementById(id);
-    d.className='status-dot wait';
+  const user=users.find(u=>u.id===uid);
+
+  if(!user){
+    notify('⚠ User ID not found',true);
+    return;
+  }
+
+  let avail = drivers.filter(d =>
+    d.available &&
+    (type==='Any' || d.vehicleType===type)
+  );
+
+  if(avail.length===0){
+    notify('⚠ No drivers available',true);
+    return;
+  }
+
+  // DRIVER OPTIONS
+  let msg = "Available Drivers:\n\n";
+
+  avail.forEach((d,index)=>{
+    msg +=
+      (index+1)+". "+
+      d.name+
+      " | "+
+      d.vehicle+
+      " | "+
+      d.vehicleType+
+      " | Rating: "+
+      d.rating+
+      " | "+d.distanceKm+
+      "km away\n";
   });
-  document.getElementById('ride-result').classList.remove('show');
+
+  msg += "\nEnter driver number:";
+
+  let choice = prompt(msg);
+
+  if(choice===null) return;
+
+  choice = parseInt(choice);
+
+  if(isNaN(choice) || choice<1 || choice>avail.length){
+    notify('⚠ Invalid driver selection',true);
+    return;
+  }
+
+  const driver = avail[choice-1];
+
   document.getElementById('searching').classList.add('show');
 
-  // Step 1
-  setTimeout(()=>{
-    document.getElementById('dot1').className='status-dot active';
-  }, 300);
+  ['dot1','dot2','dot3','dot4'].forEach(id=>{
+    document.getElementById(id).className='status-dot wait';
+  });
 
-  // AI: find nearest
   setTimeout(()=>{
-    let avail = drivers.filter(d=>d.available && (type==='Any'||d.vehicleType===type));
-    if(avail.length===0){
-      document.getElementById('searching').classList.remove('show');
-      notify('✘ No available drivers for this type',true);
-      return;
-    }
-    avail.sort((a,b)=>a.distanceKm-b.distanceKm);
-    const driver = avail[0];
 
     document.getElementById('dot1').className='status-dot done';
-    document.getElementById('dot2').className='status-dot active';
+    document.getElementById('dot2').className='status-dot done';
+    document.getElementById('dot3').className='status-dot done';
+    document.getElementById('dot4').className='status-dot done';
 
-    setTimeout(()=>{
-      document.getElementById('dot2').className='status-dot done';
-      document.getElementById('dot3').className='status-dot active';
+    const dist = rand(2,20);
 
-      const dist = rand(2,20);
-      const fare = calcFare(dist, driver.vehicleType);
-      driver.available = false;
-      updateNavStats();
+    const fare = calcFare(dist, driver.vehicleType);
 
-      const ride={
-        id:rides.length+1,userId:uid,userName:user.name,
-        driverId:driver.id,driverName:driver.name,
-        vehicle:driver.vehicle,vehicleType:driver.vehicleType,
-        rating:driver.rating,pickup,dest,dist,fare,
-        status:'Completed'
-      };
+    rides.push({
+      id: rides.length+1,
+      userId: user.id,
+      userName: user.name,
+      driverId: driver.id,
+      driverName: driver.name,
+      vehicle: driver.vehicle,
+      vehicleType: driver.vehicleType,
+      pickup,
+      dest,
+      dist,
+      fare
+    });
 
-      setTimeout(()=>{
-        document.getElementById('dot3').className='status-dot done';
-        document.getElementById('dot4').className='status-dot active';
+    document.getElementById('searching').classList.remove('show');
 
-        setTimeout(()=>{
-          document.getElementById('dot4').className='status-dot done';
-          document.getElementById('searching').classList.remove('show');
+    document.getElementById('res-id').textContent='#'+rides.length;
 
-          rides.push(ride);
-          driver.available = true;
-          updateNavStats();
+    document.getElementById('res-driver').textContent=driver.name;
 
-          document.getElementById('res-id').textContent='#'+ride.id;
-          document.getElementById('res-driver').textContent=driver.name;
-          document.getElementById('res-vehicle').textContent=driver.vehicle+' ('+driver.vehicleType+')';
-          document.getElementById('res-rating').textContent='★ '+driver.rating;
-          document.getElementById('res-dist').textContent=dist+' km';
-          document.getElementById('res-fare').textContent='Rs. '+fare;
-          document.getElementById('res-status').textContent='✔ Completed';
-          document.getElementById('ride-result').classList.add('show');
+    document.getElementById('res-vehicle').textContent=
+      driver.vehicle+' ('+driver.vehicleType+')';
 
-          notify('✔ Ride completed! Rs. '+fare);
-        }, 1200);
-      }, 1500);
-    }, 1200);
-  }, 1800);
+    document.getElementById('res-rating').textContent=
+      '★ '+driver.rating;
+
+    document.getElementById('res-dist').textContent=
+      dist+' km';
+
+    document.getElementById('res-fare').textContent=
+      'Rs. '+fare;
+
+    document.getElementById('res-status').textContent=
+      '✔ Completed';
+
+    document.getElementById('ride-result').classList.add('show');
+
+    notify('✔ Ride booked with '+driver.name);
+
+    updateNavStats();
+
+  },1500);
 }
-
 // ── FARE ESTIMATOR ────────────────────────────────────────────────────────────
 function estimateFare(){
   const d=parseFloat(document.getElementById('fare-dist').value);
