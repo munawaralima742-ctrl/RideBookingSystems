@@ -577,7 +577,67 @@ function animate(){
 animate();
 
 // ── DATA STORE ────────────────────────────────────────────────────────────────
-let users=[], drivers=[], rides=[];
+let users = [
+  {id:1,name:"Ali Hassan",phone:"03001234567"},
+  {id:2,name:"Ahmed Raza",phone:"03111234567"},
+  {id:3,name:"Usman Tariq",phone:"03221234567"}
+];
+
+let drivers = [
+
+  {
+    id:1,
+    name:"Bilal Khan",
+    vehicle:"Honda CD 70",
+    vehicleType:"Bike",
+    rating:4.8,
+    distanceKm:1.2,
+    available:true
+  },
+
+  {
+    id:2,
+    name:"Hassan Ali",
+    vehicle:"Toyota Corolla",
+    vehicleType:"Car",
+    rating:4.9,
+    distanceKm:2.5,
+    available:true
+  },
+
+  {
+    id:3,
+    name:"Awais Ahmed",
+    vehicle:"Suzuki Alto",
+    vehicleType:"Car",
+    rating:4.5,
+    distanceKm:3.1,
+    available:true
+  },
+
+  {
+    id:4,
+    name:"Zain Malik",
+    vehicle:"Yamaha YBR",
+    vehicleType:"Bike",
+    rating:4.7,
+    distanceKm:0.9,
+    available:true
+  },
+
+  {
+    id:5,
+    name:"Hamza Shah",
+    vehicle:"KIA Sportage",
+    vehicleType:"Premium",
+    rating:5.0,
+    distanceKm:4.2,
+    available:true
+  }
+
+];
+
+let rides = [];
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 function notify(msg, warn=false){
